@@ -1,27 +1,15 @@
 import io
-import time
-from tempfile import NamedTemporaryFile
 
 import boto3
-from pyarrow.parquet import ParquetFile
-from pyspark.sql.functions import pandas_udf, PandasUDFType
+import pandas as pd
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch import optim
+from torch.distributions import Normal
 from torch.utils.data import Dataset, DataLoader
 
 from dag_poster import post_hyper_search
-from pyspark.sql.types import DoubleType, StructType, StructField, IntegerType, ArrayType
-
-import torch.nn as nn
-import numpy as np
-import pandas as pd
-import torch.nn.functional as F
-import torch
-import pyspark.sql.functions as Spark_F
-
-from torch.distributions import Normal
-from torch import optim
-from pyspark import SparkConf
-from pyspark.sql import SparkSession
-from dags.lib.aws import S3
 
 
 class MDN(nn.Module):
