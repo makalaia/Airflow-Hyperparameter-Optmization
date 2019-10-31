@@ -35,7 +35,23 @@ main_dag = DAG(
   default_args=default_args
 )
 
+
 s3_client = S3(endpoint_url='http://localstack:4572')
+
+
+def download_data(path):
+    import requests
+    URL = 'https://archive.ics.uci.edu/ml/machine-learning-databases/00492/Metro_Interstate_Traffic_Volume.csv.gz'
+    file = requests.get(url=URL)
+    s3_client.put_object(data=file.content, s3_path=path, bucket='test')
+
+download_data_task = PythonOperator(
+        python_callable=download_data,
+        op_kwargs=dict(path='data/RAW_DATA_Metro_Interstate_Traffic_Volume.csv.gz'),
+        task_id='download_data_task',
+        dag=main_dag
+)
+
 conf = dict()
 conf["spark.jars.packages"] = "com.amazonaws:aws-java-sdk:1.7.4,org.apache.hadoop:hadoop-aws:2.7.2"
 s3_client.download_s3_file('functions/etl_job.py', '/usr/local/airflow/dags/etl_job.py')
@@ -82,7 +98,7 @@ pack_it_up_bois_task = DummyOperator(
         dag=main_dag,
 )
 
-spark_etl_task >> pick_hyper_task >> training_task >> pack_it_up_bois_task
+download_data_task >> spark_etl_task >> pick_hyper_task >> training_task >> pack_it_up_bois_task
 
 
 if __name__ == "__main__":
