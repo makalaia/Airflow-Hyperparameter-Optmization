@@ -1,20 +1,15 @@
 import random
-
-import pytz
-import cloudpickle as pickle
-import os
-
 from datetime import datetime, timedelta
 
+import cloudpickle as pickle
+import pytz
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.models import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.subdag_operator import SubDagOperator
-
 from lib.aws import S3
 from my_sub_dag import random_search_subdag
-from pyspark import SparkConf
 
 PARENT_DAG_NAME = 'hyperparameter_search'
 default_args = {
@@ -38,7 +33,7 @@ main_dag = DAG(
 
 s3_client = S3(endpoint_url='http://localstack:4572')
 
-
+# TODO: ADD S3_SENSOR AND BRANCHING OPERATOR
 def download_data(path):
     import requests
     URL = 'https://archive.ics.uci.edu/ml/machine-learning-databases/00492/Metro_Interstate_Traffic_Volume.csv.gz'
