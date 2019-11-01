@@ -91,7 +91,7 @@ if __name__ == '__main__':
     # train_method(path=path)
 
     post_hyper_search(
-        etl_job_path='pyfiles/etl_job.py',
+        etl_job_path='examples/pyfiles/etl_job.py',
         train_callable=train_method,
         hyperparameters=dict(lr=[1e-4, 1e-3, 1e-2], epochs=[10, 20, 50], dropout=[.1, .2, .5]),
         n_iterations=15

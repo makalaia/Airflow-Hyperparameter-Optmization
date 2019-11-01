@@ -1,5 +1,6 @@
 FROM makalaia/slim-stretch-spark
 FROM puckel/docker-airflow:1.10.4
+MAINTAINER makalaia
 
 USER root
 
@@ -24,7 +25,6 @@ ENV PATH $PATH:${SPARK_HOME}/bin
 COPY --from=0 ${SPARK_HOME} ${SPARK_HOME}
 
 # TODO: COPY PYTHON PACKAGES
-MAINTAINER makalaia
 
 
 RUN update-ca-certificates -f \

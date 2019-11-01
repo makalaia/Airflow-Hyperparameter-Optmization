@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 import cloudpickle as pickle
 import pytz
+import requests
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.models import DAG
 from airflow.operators.dummy_operator import DummyOperator
@@ -33,9 +34,25 @@ main_dag = DAG(
 
 s3_client = S3(endpoint_url='http://localstack:4572')
 
+
+# FIXME: SPARK CONNECTION NEEDS TO BE SET MANUALLY WHILE ISSUE AIRFLOW-5017 IS STILL NOT RESOLVED
+def check_spark_connection():
+    from sqlalchemy import create_engine
+
+    engine = create_engine('postgres+psycopg2://airflow:airflow@postgres:5432/airflow')
+    conn = engine.connect()
+    conn.execute("INSERT INTO connection (conn_id, host) VALUES ('spark_test', 'spark://spark-master:7077')")
+    conn.close()
+
+check_spark_connection_task = PythonOperator(
+        python_callable=check_spark_connection,
+        task_id='check_spark_connection_task',
+        dag=main_dag
+)
+
+
 # TODO: ADD S3_SENSOR AND BRANCHING OPERATOR
 def download_data(path):
-    import requests
     URL = 'https://archive.ics.uci.edu/ml/machine-learning-databases/00492/Metro_Interstate_Traffic_Volume.csv.gz'
     file = requests.get(url=URL)
     s3_client.put_object(data=file.content, s3_path=path, bucket='test')
@@ -93,7 +110,7 @@ pack_it_up_bois_task = DummyOperator(
         dag=main_dag,
 )
 
-download_data_task >> spark_etl_task >> pick_hyper_task >> training_task >> pack_it_up_bois_task
+check_spark_connection_task >> download_data_task >> spark_etl_task >> pick_hyper_task >> training_task >> pack_it_up_bois_task
 
 
 if __name__ == "__main__":
