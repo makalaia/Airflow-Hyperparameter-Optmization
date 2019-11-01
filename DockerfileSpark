@@ -1,5 +1,5 @@
 FROM python:3.7-slim-stretch
-MAINTAINER DIO
+MAINTAINER makalaia
 
 RUN apt-get update \
  && apt-get install -y locales \
@@ -57,9 +57,7 @@ RUN curl -sL --retry 3 \
  && chown -R root:root $SPARK_HOME
 
 # PYTHON PACKAGES
-RUN pip3 install cython cloudpickle pandas s3fs sklearn boto3 pyspark==${SPARK_VERSION} torch
-RUN pip3 install pyarrow==0.15.0
-
+RUN pip3 install cython cloudpickle pandas s3fs sklearn boto3 pyspark==${SPARK_VERSION} torch pyarrow==0.15.0
 
 #WORKDIR $SPARK_HOME
 CMD ["bin/spark-class", "org.apache.spark.deploy.master.Master"]
