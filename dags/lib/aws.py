@@ -6,13 +6,15 @@ import boto3
 
 class S3:
     BUCKET_NAME = 'test'
-    ENDPOINT_URL = 'http://0.0.0.0:4572'
+    ENDPOINT_URL = 'http://localhost:4572'
 
-    def __init__(self, endpoint_url='http://0.0.0.0:4572'):
+    def __init__(self, endpoint_url='http://localhost:4572'):
         self.s3 = boto3.client(
             's3',
             region_name='us-east-1',
             endpoint_url=endpoint_url,
+            aws_access_key_id='XXX',
+            aws_secret_access_key='XXX',
         )
 
     def create_bucket(self, bucket=BUCKET_NAME):
