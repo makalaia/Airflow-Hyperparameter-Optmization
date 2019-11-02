@@ -13,6 +13,8 @@ from lib.aws import S3
 from my_sub_dag import random_search_subdag
 
 PARENT_DAG_NAME = 'hyperparameter_search'
+ETL_JOB_PATH = 'dags/etl_job.py'
+
 default_args = {
     'owner': 'lucas.silva',
     'depends_on_past': False,
@@ -64,12 +66,22 @@ download_data_task = PythonOperator(
         dag=main_dag
 )
 
+def sync_job(path, s3_path='functions/etl_job.py'):
+    s3_client.download_s3_file(s3_path, path)
+
+
+sync_job_task = PythonOperator(
+    python_callable=sync_job,
+    op_kwargs=dict(path=ETL_JOB_PATH),
+    task_id='sync_job_task',
+    dag=main_dag
+)
+
 conf = dict()
 conf["spark.jars.packages"] = "com.amazonaws:aws-java-sdk:1.7.4,org.apache.hadoop:hadoop-aws:2.7.2"
-s3_client.download_s3_file('functions/etl_job.py', '/usr/local/airflow/dags/etl_job.py')
 spark_etl_task = SparkSubmitOperator(
     conf=conf,
-    application='/usr/local/airflow/dags/etl_job.py',
+    application=ETL_JOB_PATH,
     task_id='spark_etl_task',
     conn_id='spark_test',
     dag=main_dag
@@ -110,7 +122,10 @@ pack_it_up_bois_task = DummyOperator(
         dag=main_dag,
 )
 
-check_spark_connection_task >> download_data_task >> spark_etl_task >> pick_hyper_task >> training_task >> pack_it_up_bois_task
+check_spark_connection_task >> spark_etl_task
+sync_job_task >> spark_etl_task
+download_data_task >> spark_etl_task
+spark_etl_task >> pick_hyper_task >> training_task >> pack_it_up_bois_task
 
 
 if __name__ == "__main__":
