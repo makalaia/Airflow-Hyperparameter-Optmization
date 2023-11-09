@@ -1,5 +1,5 @@
 cloudpickle
-pyarrow==0.15.0
+pyarrow==14.0.1
 pandas
 s3fs
 sklearn
